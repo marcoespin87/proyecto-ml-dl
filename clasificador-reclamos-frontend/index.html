@@ -305,10 +305,10 @@
     document.getElementById("result").innerHTML = "";
 
     try {
-      const res = await fetch(API + "/api/predict-text", {
+      const res = await fetch(API + "/api/predict", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ descripcion: texto }),
+        body: JSON.stringify({ texto: texto }),
       });
 
       if (!res.ok) {
