@@ -10,6 +10,8 @@ from pydantic import BaseModel
 
 from config import MODEL_PATH, METRICS_PATH, DATA_PATH, TARGET
 
+TEXT_MODEL_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "models", "text_model.pkl")
+
 app = FastAPI(title="Clasificador de Reclamos API", version="1.0.0")
 
 app.add_middleware(
@@ -22,16 +24,22 @@ app.add_middleware(
 
 # Load model artifacts at startup
 artifacts = None
+text_pipeline = None
 
 
 @app.on_event("startup")
 def load_model():
-    global artifacts
+    global artifacts, text_pipeline
     if os.path.exists(MODEL_PATH):
         artifacts = joblib.load(MODEL_PATH)
         print(f"Modelo cargado desde {MODEL_PATH}")
     else:
         print(f"ADVERTENCIA: No se encontro modelo en {MODEL_PATH}. Entrena primero.")
+    if os.path.exists(TEXT_MODEL_PATH):
+        text_pipeline = joblib.load(TEXT_MODEL_PATH)
+        print(f"Modelo de texto cargado desde {TEXT_MODEL_PATH}")
+    else:
+        print(f"ADVERTENCIA: No se encontro modelo de texto en {TEXT_MODEL_PATH}. Ejecuta la celda 14 del notebook.")
 
 
 class ClaimInput(BaseModel):
@@ -161,9 +169,40 @@ def get_stats():
     return stats
 
 
+class TextInput(BaseModel):
+    descripcion: str
+
+
+@app.post("/api/predict-text")
+def predict_text(body: TextInput):
+    if text_pipeline is None:
+        raise HTTPException(status_code=503, detail="Modelo de texto no cargado. Ejecuta la celda 14 del notebook.")
+
+    texto = body.descripcion.strip()
+    if not texto:
+        raise HTTPException(status_code=400, detail="La descripcion no puede estar vacia.")
+
+    proba = text_pipeline.predict_proba([texto])[0]
+    classes = text_pipeline.classes_
+    pred_idx = int(np.argmax(proba))
+    pred_label = classes[pred_idx]
+
+    probabilidades = {
+        cls: round(float(p), 4)
+        for cls, p in sorted(zip(classes, proba), key=lambda x: x[1], reverse=True)
+    }
+
+    return {
+        "prediccion": pred_label,
+        "confianza": round(float(proba[pred_idx]), 4),
+        "probabilidades": probabilidades,
+    }
+
+
 @app.get("/api/health")
 def health():
     return {
         "status": "ok",
         "model_loaded": artifacts is not None,
+        "text_model_loaded": text_pipeline is not None,
     }
