@@ -4,41 +4,26 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Clasificador de Reclamos</title>
-  <meta name="description" content="Sistema de clasificacion automatica de reclamos de consumidores" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Source+Sans+3:ital,wght@0,300;0,400;0,500;0,600;0,700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Source+Sans+3:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <style>
-    /* ── Reset & base ───────────────────────────────────────────── */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    * { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+    * { -webkit-font-smoothing: antialiased; }
 
     :root {
-      --ink: #1a1a1a;
+      --ink:   #1a1a1a;
       --cream: #f5f0e8;
-      --sand: #e8e0d0;
-      --clay: #c4a882;
-      --rust: #b85c38;
+      --sand:  #e8e0d0;
+      --clay:  #c4a882;
+      --rust:  #b85c38;
       --ember: #e8734a;
-      --deep: #2c2418;
+      --deep:  #2c2418;
       --slate: #4a4a4a;
       --white: #ffffff;
-      --green-50: #f0fdf4;
-      --green-200: #bbf7d0;
-      --green-500: #22c55e;
-      --green-700: #15803d;
-      --amber-50: #fffbeb;
-      --amber-200: #fde68a;
-      --amber-500: #f59e0b;
-      --amber-600: #d97706;
-      --red-50: #fef2f2;
-      --red-200: #fecaca;
-      --red-500: #ef4444;
-      --red-600: #dc2626;
       --font-display: "DM Serif Display", Georgia, serif;
-      --font-body: "Source Sans 3", system-ui, sans-serif;
-      --font-mono: "JetBrains Mono", monospace;
+      --font-body:    "Source Sans 3", system-ui, sans-serif;
+      --font-mono:    "JetBrains Mono", monospace;
     }
 
     body {
@@ -46,860 +31,370 @@
       color: var(--ink);
       background-color: var(--cream);
       background-image:
-        radial-gradient(circle at 20% 50%, rgba(184, 92, 56, 0.03) 0%, transparent 50%),
-        radial-gradient(circle at 80% 20%, rgba(196, 168, 130, 0.06) 0%, transparent 50%);
+        radial-gradient(circle at 20% 50%, rgba(184,92,56,0.04) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(196,168,130,0.07) 0%, transparent 50%);
       min-height: 100vh;
+      display: flex;
+      flex-direction: column;
     }
 
-    ::selection { background: rgba(184, 92, 56, 0.2); color: var(--deep); }
-
-    /* ── Scrollbar ──────────────────────────────────────────────── */
-    ::-webkit-scrollbar { width: 6px; }
-    ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: rgba(196, 168, 130, 0.3); border-radius: 9999px; }
-    ::-webkit-scrollbar-thumb:hover { background: rgba(196, 168, 130, 0.5); }
-
-    /* ── Animations ─────────────────────────────────────────────── */
-    @keyframes fade-up {
-      0% { opacity: 0; transform: translateY(16px); }
-      100% { opacity: 1; transform: translateY(0); }
-    }
-    @keyframes scale-in {
-      0% { opacity: 0; transform: scale(0.95); }
-      100% { opacity: 1; transform: scale(1); }
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
-
-    .animate-fade-up {
-      opacity: 0;
-      animation: fade-up 0.5s ease-out forwards;
-    }
-    .animate-scale-in {
-      opacity: 0;
-      animation: scale-in 0.3s ease-out forwards;
-    }
-
-    /* ── Layout helpers ─────────────────────────────────────────── */
-    .container { max-width: 1280px; margin: 0 auto; padding: 0 1.5rem; }
-    .space-y-8 > * + * { margin-top: 2rem; }
-
-    /* ── Card ───────────────────────────────────────────────────── */
-    .card {
-      background: rgba(255,255,255,0.8);
-      backdrop-filter: blur(4px);
-      border: 1px solid rgba(232,224,208,0.6);
-      border-radius: 1rem;
-      box-shadow: 0 1px 2px rgba(0,0,0,0.04);
-      transition: box-shadow 0.3s, border-color 0.3s;
-    }
-    .card:hover {
-      box-shadow: 0 4px 12px rgba(0,0,0,0.06);
-      border-color: rgba(196,168,130,0.4);
-    }
-    .card-solid {
-      background: var(--white);
-      border: 1px solid rgba(232,224,208,0.8);
-      border-radius: 1rem;
-      box-shadow: 0 1px 2px rgba(0,0,0,0.04);
-    }
-
-    /* ── Typography ─────────────────────────────────────────────── */
-    .section-title {
-      font-family: var(--font-display);
-      font-size: 1.5rem;
-      color: var(--deep);
-      letter-spacing: -0.02em;
-    }
-    .label {
-      display: block;
-      font-size: 0.75rem;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-      color: rgba(74,74,74,0.7);
-      margin-bottom: 0.375rem;
-    }
-    .metric-value {
-      font-family: var(--font-mono);
-      font-size: 1.875rem;
-      font-weight: 500;
-      letter-spacing: -0.02em;
-    }
-    .font-mono { font-family: var(--font-mono); }
-
-    /* ── Form elements ──────────────────────────────────────────── */
-    .input-field {
-      width: 100%;
-      padding: 0.75rem 1rem;
-      background: rgba(245,240,232,0.6);
-      border: 1px solid var(--sand);
-      border-radius: 0.75rem;
-      font-family: var(--font-body);
-      font-size: 0.875rem;
-      color: var(--ink);
-      transition: all 0.2s;
-      outline: none;
-    }
-    .input-field::placeholder { color: rgba(74,74,74,0.4); }
-    .input-field:focus {
-      box-shadow: 0 0 0 3px rgba(184,92,56,0.15);
-      border-color: rgba(184,92,56,0.5);
-    }
-
-    .btn-primary {
-      display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;
-      width: 100%; padding: 0.875rem 1.5rem;
-      background: var(--rust); color: var(--white);
-      font-family: var(--font-body); font-weight: 600; font-size: 0.875rem;
-      border: none; border-radius: 0.75rem; cursor: pointer;
-      box-shadow: 0 4px 14px rgba(184,92,56,0.2);
-      transition: all 0.2s;
-    }
-    .btn-primary:hover { background: var(--ember); box-shadow: 0 6px 20px rgba(232,115,74,0.25); }
-    .btn-primary:active { transform: scale(0.98); }
-    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
-    .btn-primary:disabled:hover { background: var(--rust); transform: none; }
-
-    /* ── Tag / badge ────────────────────────────────────────────── */
-    .tag {
-      display: inline-flex; align-items: center;
-      padding: 0.25rem 0.625rem; border-radius: 0.5rem;
-      font-size: 0.75rem; font-weight: 500;
-    }
-    .tag-green { background: var(--green-50); color: var(--green-700); border: 1px solid var(--green-200); }
-    .tag-rust  { background: rgba(184,92,56,0.1); color: var(--rust); }
-
-    .pulse-dot {
-      width: 6px; height: 6px; border-radius: 50%;
-      background: var(--green-500); margin-right: 6px;
-      animation: pulse-dot 2s ease-in-out infinite;
-    }
-    @keyframes pulse-dot { 0%,100%{opacity:1;} 50%{opacity:0.4;} }
-
-    /* ── Header ─────────────────────────────────────────────────── */
+    /* ── Header ── */
     header {
       border-bottom: 1px solid rgba(232,224,208,0.6);
-      background: rgba(255,255,255,0.5);
+      background: rgba(255,255,255,0.55);
       backdrop-filter: blur(12px);
       position: sticky; top: 0; z-index: 50;
     }
     .header-inner {
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 1rem 0;
+      max-width: 720px; margin: 0 auto; padding: 0 1.5rem;
+      display: flex; align-items: center; gap: 0.75rem;
+      height: 60px;
     }
-    .header-brand { display: flex; align-items: center; gap: 0.75rem; }
     .header-icon {
-      width: 36px; height: 36px; border-radius: 0.75rem;
+      width: 34px; height: 34px; border-radius: 0.625rem;
       background: linear-gradient(135deg, var(--rust), var(--ember));
       display: flex; align-items: center; justify-content: center;
-      box-shadow: 0 4px 12px rgba(184,92,56,0.2);
+      box-shadow: 0 3px 10px rgba(184,92,56,0.22);
+      flex-shrink: 0;
     }
-    .header-icon svg { width: 20px; height: 20px; color: var(--white); }
+    .header-icon svg { width: 18px; height: 18px; color: #fff; }
     .header-title {
-      font-family: var(--font-display); font-size: 1.25rem;
-      color: var(--deep); letter-spacing: -0.02em; line-height: 1;
+      font-family: var(--font-display); font-size: 1.15rem;
+      color: var(--deep); letter-spacing: -0.02em;
     }
-    .header-subtitle { font-size: 0.75rem; color: rgba(74,74,74,0.5); margin-top: 2px; }
+    .header-sub { font-size: 0.72rem; color: rgba(74,74,74,0.5); margin-left: auto; }
 
-    /* ── Grids ──────────────────────────────────────────────────── */
-    .stats-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 1rem;
-    }
-    .prediction-grid {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 1.5rem;
-    }
-    .charts-grid {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 1.5rem;
-    }
-    .form-grid {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 1rem;
+    /* ── Main ── */
+    main {
+      flex: 1;
+      max-width: 720px; margin: 0 auto; width: 100%;
+      padding: 3rem 1.5rem 4rem;
     }
 
-    @media (min-width: 640px) {
-      .form-grid { grid-template-columns: repeat(2, 1fr); gap: 1rem 1rem; }
+    .hero { margin-bottom: 2.5rem; }
+    .hero h1 {
+      font-family: var(--font-display); font-size: 2rem;
+      color: var(--deep); letter-spacing: -0.03em; line-height: 1.2;
+      margin-bottom: 0.5rem;
     }
-    @media (min-width: 1024px) {
-      .stats-grid { grid-template-columns: repeat(4, 1fr); }
-      .prediction-grid { grid-template-columns: 3fr 2fr; }
-      .charts-grid { grid-template-columns: repeat(2, 1fr); }
+    .hero p { font-size: 0.95rem; color: var(--slate); line-height: 1.6; max-width: 520px; }
+
+    /* ── Card ── */
+    .card {
+      background: rgba(255,255,255,0.82);
+      backdrop-filter: blur(4px);
+      border: 1px solid rgba(232,224,208,0.7);
+      border-radius: 1.25rem;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+      padding: 2rem;
     }
 
-    /* ── Stats card inner ───────────────────────────────────────── */
-    .stat-card { padding: 1.25rem; }
-    .stat-header { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem; }
-    .stat-icon { opacity: 0.6; }
-    .stat-icon svg { width: 20px; height: 20px; }
-
-    .color-deep { color: var(--deep); }
-    .color-rust { color: var(--rust); }
-    .color-ember { color: var(--ember); }
-    .color-green { color: var(--green-700); }
-
-    /* ── Prediction result ──────────────────────────────────────── */
-    .result-placeholder {
-      display: flex; flex-direction: column; align-items: center; justify-content: center;
-      min-height: 320px;
+    /* ── Form ── */
+    .field-label {
+      display: block; font-size: 0.75rem; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.07em;
+      color: rgba(74,74,74,0.65); margin-bottom: 0.5rem;
     }
-    .result-placeholder-icon {
-      width: 64px; height: 64px; border-radius: 1rem;
-      background: rgba(232,224,208,0.4);
-      display: flex; align-items: center; justify-content: center;
-      margin-bottom: 1rem;
+    textarea {
+      width: 100%; min-height: 130px;
+      padding: 0.875rem 1rem;
+      background: rgba(245,240,232,0.55);
+      border: 1px solid var(--sand);
+      border-radius: 0.875rem;
+      font-family: var(--font-body); font-size: 0.95rem; color: var(--ink);
+      line-height: 1.55; resize: vertical; outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
     }
-    .result-placeholder-icon svg { width: 32px; height: 32px; color: var(--clay); }
-    .result-placeholder p {
-      font-size: 0.875rem; color: rgba(74,74,74,0.5);
-      text-align: center; font-weight: 500;
+    textarea::placeholder { color: rgba(74,74,74,0.38); }
+    textarea:focus {
+      border-color: rgba(184,92,56,0.45);
+      box-shadow: 0 0 0 3px rgba(184,92,56,0.12);
+    }
+    .char-count {
+      text-align: right; font-size: 0.72rem;
+      color: rgba(74,74,74,0.4); margin-top: 0.35rem;
     }
 
-    .result-box { border-radius: 0.75rem; padding: 1.25rem; margin-bottom: 1.25rem; border: 1px solid; }
-    .result-box .label { margin-bottom: 0.5rem; }
-    .result-prediction {
-      font-family: var(--font-display); font-size: 1.25rem;
-      color: var(--deep); line-height: 1.3; margin-bottom: 0.75rem;
+    .btn {
+      display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+      width: 100%; margin-top: 1.25rem;
+      padding: 0.9rem 1.5rem;
+      background: var(--rust); color: #fff;
+      font-family: var(--font-body); font-weight: 600; font-size: 0.9rem;
+      border: none; border-radius: 0.875rem; cursor: pointer;
+      box-shadow: 0 4px 14px rgba(184,92,56,0.22);
+      transition: background 0.2s, box-shadow 0.2s, transform 0.1s;
     }
-    .confidence-bar-bg {
-      flex: 1; height: 10px; background: rgba(0,0,0,0.05);
-      border-radius: 9999px; overflow: hidden;
-    }
-    .confidence-bar {
-      height: 100%; border-radius: 9999px;
-      transition: width 0.7s ease-out;
-    }
-    .confidence-row { display: flex; align-items: center; gap: 0.75rem; }
-    .confidence-pct { font-family: var(--font-mono); font-size: 0.875rem; font-weight: 500; }
+    .btn:hover:not(:disabled) { background: var(--ember); box-shadow: 0 6px 20px rgba(232,115,74,0.28); }
+    .btn:active:not(:disabled) { transform: scale(0.98); }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
-    /* ── Expand button ──────────────────────────────────────────── */
-    .expand-btn {
-      display: flex; align-items: center; gap: 0.5rem;
-      background: none; border: none; cursor: pointer;
-      font-size: 0.875rem; font-weight: 500; color: rgba(74,74,74,0.6);
-      font-family: var(--font-body); margin-bottom: 0.75rem;
-      transition: color 0.2s;
-    }
-    .expand-btn:hover { color: var(--rust); }
-    .expand-btn svg { width: 16px; height: 16px; transition: transform 0.2s; }
-    .expand-btn.expanded svg { transform: rotate(90deg); }
-
-    /* ── Prob row ────────────────────────────────────────────────── */
-    .prob-row { display: flex; align-items: center; gap: 0.75rem; font-size: 0.875rem; margin-bottom: 0.5rem; }
-    .prob-name { width: 45%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: rgba(74,74,74,0.8); }
-    .prob-bar-bg { flex: 1; height: 6px; background: rgba(232,224,208,0.6); border-radius: 9999px; overflow: hidden; }
-    .prob-bar { height: 100%; background: rgba(184,92,56,0.7); border-radius: 9999px; }
-    .prob-pct { font-family: var(--font-mono); font-size: 0.75rem; color: rgba(74,74,74,0.6); width: 56px; text-align: right; }
-
-    /* ── Metrics table ──────────────────────────────────────────── */
-    .metrics-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 0.5rem; }
-    .metrics-tags { display: flex; gap: 0.75rem; }
-    .metrics-table { width: 100%; font-size: 0.875rem; border-collapse: collapse; }
-    .metrics-table th {
-      text-align: left; padding: 0.625rem 0.75rem;
-      font-size: 0.75rem; font-weight: 600;
-      text-transform: uppercase; letter-spacing: 0.06em;
-      color: rgba(74,74,74,0.7); border-bottom: 1px solid var(--sand);
-    }
-    .metrics-table th:not(:first-child) { text-align: right; }
-    .metrics-table td { padding: 0.625rem 0.75rem; border-bottom: 1px solid rgba(232,224,208,0.4); }
-    .metrics-table td:not(:first-child) {
-      text-align: right; font-family: var(--font-mono); font-size: 0.75rem;
-    }
-    .metrics-table td:first-child {
-      font-weight: 500; color: var(--deep);
-      max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-    }
-    .metrics-table tr:hover { background: rgba(232,224,208,0.2); }
-
-    /* ── Feature importance bars ─────────────────────────────────── */
-    .fi-section-title {
-      font-size: 0.875rem; font-weight: 600;
-      text-transform: uppercase; letter-spacing: 0.06em;
-      color: rgba(74,74,74,0.6); margin-bottom: 1rem;
-    }
-    .fi-row { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.625rem; }
-    .fi-name {
-      font-size: 0.75rem; color: rgba(74,74,74,0.7);
-      width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-      font-weight: 500;
-    }
-    .fi-bar-bg { flex: 1; height: 8px; background: rgba(232,224,208,0.5); border-radius: 9999px; overflow: hidden; }
-    .fi-bar { height: 100%; border-radius: 9999px; transition: width 0.5s; }
-    .fi-pct { font-family: var(--font-mono); font-size: 0.75rem; color: rgba(74,74,74,0.5); width: 40px; text-align: right; }
-
-    /* ── Chart container ─────────────────────────────────────────── */
-    .chart-container { position: relative; width: 100%; max-height: 340px; }
-
-    /* ── Footer ─────────────────────────────────────────────────── */
-    footer {
-      border-top: 1px solid rgba(232,224,208,0.4); margin-top: 3rem;
-    }
-    .footer-inner {
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 1.5rem 0; font-size: 0.75rem; color: rgba(74,74,74,0.4);
-    }
-    .footer-inner .version { font-family: var(--font-mono); }
-
-    /* ── Spinner ─────────────────────────────────────────────────── */
+    /* spinner */
     .spinner {
-      display: inline-block; width: 16px; height: 16px;
-      border: 2px solid rgba(255,255,255,0.3);
-      border-top-color: var(--white); border-radius: 50%;
-      animation: spin 0.6s linear infinite;
+      width: 17px; height: 17px; border-radius: 50%;
+      border: 2px solid rgba(255,255,255,0.35);
+      border-top-color: #fff;
+      animation: spin 0.7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Result ── */
+    #result { margin-top: 1.75rem; }
+
+    .result-card {
+      border-radius: 1.25rem; overflow: hidden;
+      animation: fade-up 0.35s ease-out both;
+    }
+    @keyframes fade-up {
+      from { opacity: 0; transform: translateY(12px); }
+      to   { opacity: 1; transform: translateY(0); }
     }
 
-    /* ── Overflow wrapper ────────────────────────────────────────── */
-    .overflow-x { overflow-x: auto; }
+    .result-header {
+      padding: 1.25rem 1.5rem 1rem;
+      background: linear-gradient(135deg, var(--rust) 0%, var(--ember) 100%);
+      display: flex; align-items: flex-start; gap: 0.875rem;
+    }
+    .result-icon {
+      width: 40px; height: 40px; border-radius: 0.75rem;
+      background: rgba(255,255,255,0.18);
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .result-icon svg { width: 20px; height: 20px; color: #fff; }
+    .result-label { font-size: 0.7rem; font-weight: 600; text-transform: uppercase;
+      letter-spacing: 0.08em; color: rgba(255,255,255,0.7); margin-bottom: 0.25rem; }
+    .result-title {
+      font-family: var(--font-display); font-size: 1.3rem;
+      color: #fff; letter-spacing: -0.02em; line-height: 1.25;
+    }
 
-    .hidden { display: none; }
+    .result-body {
+      background: #fff; border: 1px solid rgba(232,224,208,0.8);
+      border-top: none; border-radius: 0 0 1.25rem 1.25rem;
+      padding: 1.25rem 1.5rem;
+    }
+    .confidence-row {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 0.875rem;
+    }
+    .confidence-label { font-size: 0.78rem; color: rgba(74,74,74,0.65); font-weight: 500; }
+    .confidence-value {
+      font-family: var(--font-mono); font-size: 0.9rem;
+      font-weight: 500; color: var(--rust);
+    }
+    .bar-track {
+      height: 6px; border-radius: 9999px;
+      background: rgba(196,168,130,0.25); overflow: hidden;
+    }
+    .bar-fill {
+      height: 100%; border-radius: 9999px;
+      background: linear-gradient(90deg, var(--rust), var(--ember));
+      transition: width 0.6s cubic-bezier(0.34,1.56,0.64,1);
+    }
+
+    .top-list { margin-top: 1.25rem; }
+    .top-list-title {
+      font-size: 0.72rem; font-weight: 600; text-transform: uppercase;
+      letter-spacing: 0.07em; color: rgba(74,74,74,0.5); margin-bottom: 0.75rem;
+    }
+    .top-item {
+      display: flex; align-items: center; gap: 0.75rem;
+      padding: 0.5rem 0;
+      border-bottom: 1px solid rgba(232,224,208,0.5);
+      font-size: 0.85rem;
+    }
+    .top-item:last-child { border-bottom: none; }
+    .top-item-rank {
+      font-family: var(--font-mono); font-size: 0.72rem;
+      color: rgba(74,74,74,0.4); width: 18px; flex-shrink: 0; text-align: center;
+    }
+    .top-item-name { flex: 1; color: var(--ink); line-height: 1.3; }
+    .top-item-pct {
+      font-family: var(--font-mono); font-size: 0.8rem;
+      color: var(--rust); font-weight: 500; flex-shrink: 0;
+    }
+
+    /* ── Error ── */
+    .error-card {
+      background: #fef2f2; border: 1px solid #fecaca; border-radius: 1rem;
+      padding: 1rem 1.25rem;
+      display: flex; align-items: flex-start; gap: 0.625rem;
+      font-size: 0.875rem; color: #b91c1c;
+      animation: fade-up 0.3s ease-out both;
+    }
+    .error-card svg { width: 18px; height: 18px; flex-shrink: 0; margin-top: 1px; }
   </style>
 </head>
 <body>
 
-  <!-- ═══ HEADER ═══ -->
-  <header>
-    <div class="container">
-      <div class="header-inner">
-        <div class="header-brand">
-          <div class="header-icon">
-            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+<header>
+  <div class="header-inner">
+    <div class="header-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+      </svg>
+    </div>
+    <span class="header-title">Clasificador de Reclamos</span>
+    <span class="header-sub" id="api-status"></span>
+  </div>
+</header>
+
+<main>
+  <div class="hero">
+    <h1>¿Cuál es tu reclamo?</h1>
+    <p>Describe el problema con tu producto o servicio y el sistema lo clasificará automáticamente según el motivo de reclamación.</p>
+  </div>
+
+  <div class="card">
+    <label class="field-label" for="descripcion">Descripción del reclamo</label>
+    <textarea
+      id="descripcion"
+      placeholder="Ej: Compré una lavadora y tiene defectos desde que llegó, el vendedor no quiere hacerla válida la garantía..."
+      maxlength="1000"
+    ></textarea>
+    <div class="char-count"><span id="char-count">0</span> / 1000</div>
+
+    <button class="btn" id="btn-clasificar" onclick="clasificar()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
+      </svg>
+      Clasificar reclamo
+    </button>
+  </div>
+
+  <div id="result"></div>
+</main>
+
+<script>
+  const API = "http://127.0.0.1:8000";
+
+  // Char counter
+  document.getElementById("descripcion").addEventListener("input", function () {
+    document.getElementById("char-count").textContent = this.value.length;
+  });
+
+  // Health check
+  fetch(API + "/api/health")
+    .then(r => r.json())
+    .then(d => {
+      const el = document.getElementById("api-status");
+      if (d.text_model_loaded) {
+        el.style.color = "#15803d";
+        el.textContent = "● API conectada";
+      } else {
+        el.style.color = "#d97706";
+        el.textContent = "⚠ Modelo de texto no cargado";
+      }
+    })
+    .catch(() => {
+      const el = document.getElementById("api-status");
+      el.style.color = "#dc2626";
+      el.textContent = "● API desconectada";
+    });
+
+  async function clasificar() {
+    const texto = document.getElementById("descripcion").value.trim();
+    if (!texto) {
+      showError("Escribe una descripción antes de clasificar.");
+      return;
+    }
+
+    const btn = document.getElementById("btn-clasificar");
+    btn.disabled = true;
+    btn.innerHTML = '<div class="spinner"></div> Clasificando...';
+    document.getElementById("result").innerHTML = "";
+
+    try {
+      const res = await fetch(API + "/api/predict-text", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ descripcion: texto }),
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.detail || "Error del servidor");
+      }
+
+      const data = await res.json();
+      showResult(data);
+    } catch (e) {
+      showError(e.message || "No se pudo conectar con la API.");
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = `
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
+        </svg>
+        Clasificar reclamo`;
+    }
+  }
+
+  function showResult(data) {
+    const pct = Math.round(data.confianza * 100);
+    const top5 = Object.entries(data.probabilidades).slice(0, 5);
+
+    const itemsHTML = top5.map(([name, prob], i) => `
+      <div class="top-item">
+        <span class="top-item-rank">${i + 1}</span>
+        <span class="top-item-name">${name}</span>
+        <span class="top-item-pct">${Math.round(prob * 100)}%</span>
+      </div>
+    `).join("");
+
+    document.getElementById("result").innerHTML = `
+      <div class="result-card">
+        <div class="result-header">
+          <div class="result-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
             </svg>
           </div>
           <div>
-            <div class="header-title">Clasificador de Reclamos</div>
-            <div class="header-subtitle">Sistema inteligente de clasificación</div>
+            <div class="result-label">Motivo de reclamación detectado</div>
+            <div class="result-title">${data.prediccion}</div>
           </div>
         </div>
-        <div>
-          <span class="tag tag-green">
-            <span class="pulse-dot"></span>
-            Modelo activo
-          </span>
-        </div>
-      </div>
-    </div>
-  </header>
-
-  <!-- ═══ MAIN ═══ -->
-  <main class="container" style="padding-top:2rem; padding-bottom:2rem;">
-    <div class="space-y-8">
-
-      <!-- ─── Stats cards ─── -->
-      <div class="stats-grid" id="stats-grid">
-        <div class="card stat-card animate-fade-up" style="animation-delay:0ms">
-          <div class="stat-header">
-            <span class="stat-icon color-deep">
-              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-            </span>
-            <span class="label" style="margin-bottom:0">Reclamos totales</span>
-          </div>
-          <div class="metric-value color-deep" id="stat-total">...</div>
-        </div>
-        <div class="card stat-card animate-fade-up" style="animation-delay:80ms">
-          <div class="stat-header">
-            <span class="stat-icon color-rust">
-              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/></svg>
-            </span>
-            <span class="label" style="margin-bottom:0">Categorías</span>
-          </div>
-          <div class="metric-value color-rust" id="stat-categorias">...</div>
-        </div>
-        <div class="card stat-card animate-fade-up" style="animation-delay:160ms">
-          <div class="stat-header">
-            <span class="stat-icon color-ember">
-              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-            </span>
-            <span class="label" style="margin-bottom:0">F1-Score</span>
-          </div>
-          <div class="metric-value color-ember" id="stat-f1">...</div>
-        </div>
-        <div class="card stat-card animate-fade-up" style="animation-delay:240ms">
-          <div class="stat-header">
-            <span class="stat-icon color-green">
-              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-            </span>
-            <span class="label" style="margin-bottom:0">Accuracy</span>
-          </div>
-          <div class="metric-value color-green" id="stat-accuracy">...</div>
-        </div>
-      </div>
-
-      <!-- ─── Prediction section ─── -->
-      <div class="prediction-grid">
-        <!-- Form -->
-        <div class="card-solid animate-fade-up" style="padding:1.5rem; animation-delay:200ms">
-          <h2 class="section-title" style="margin-bottom:0.25rem">Clasificar reclamo</h2>
-          <p style="font-size:0.875rem; color:rgba(74,74,74,0.6); margin-bottom:1.5rem;">
-            Completa los datos del reclamo para obtener una predicción
-          </p>
-          <form id="prediction-form">
-            <div class="form-grid" id="form-fields"></div>
-            <button type="submit" class="btn-primary" id="submit-btn" style="margin-top:1.5rem;">
-              <svg style="width:16px;height:16px" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
-              </svg>
-              Clasificar reclamo
-            </button>
-          </form>
-        </div>
-
-        <!-- Result -->
-        <div class="card-solid animate-fade-up" style="padding:1.5rem; animation-delay:300ms" id="result-panel">
-          <div class="result-placeholder" id="result-placeholder">
-            <div class="result-placeholder-icon">
-              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                  d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
-              </svg>
-            </div>
-            <p>Completa el formulario para<br/>obtener una clasificación</p>
-          </div>
-          <div id="result-content" class="hidden"></div>
-        </div>
-      </div>
-
-      <!-- ─── Charts + Metrics ─── -->
-      <div class="charts-grid">
-        <!-- Distribution chart -->
-        <div class="card-solid animate-fade-up" style="padding:1.5rem; animation-delay:400ms" id="chart-panel">
-          <h2 class="section-title" style="margin-bottom:1.25rem">Distribución de reclamos</h2>
-          <div class="chart-container" id="chart-container">
-            <canvas id="dist-chart"></canvas>
-          </div>
-          <div id="fi-section" class="hidden" style="margin-top:2rem;"></div>
-        </div>
-
-        <!-- Metrics table -->
-        <div class="card-solid animate-fade-up" style="padding:1.5rem; animation-delay:500ms" id="metrics-panel">
-          <div class="metrics-header">
-            <h2 class="section-title">Métricas del modelo</h2>
-            <div class="metrics-tags" id="metrics-tags"></div>
-          </div>
-          <div class="overflow-x" id="metrics-table-wrap">
-            <div style="display:flex;align-items:center;justify-content:center;height:160px;font-size:0.875rem;color:rgba(74,74,74,0.4);">
-              Cargando métricas...
-            </div>
-          </div>
-        </div>
-      </div>
-
-    </div>
-  </main>
-
-  <!-- ═══ FOOTER ═══ -->
-  <footer>
-    <div class="container">
-      <div class="footer-inner">
-        <span>Clasificador Inteligente de Reclamos &mdash; XGBoost + FastAPI</span>
-        <span class="version">v1.0.0</span>
-      </div>
-    </div>
-  </footer>
-
-  <!-- ═══════════════════════════════════════════════════════════
-       JAVASCRIPT
-       ═══════════════════════════════════════════════════════════ -->
-  <script>
-    // ── Config ─────────────────────────────────────────────────
-    const API_BASE = "http://localhost:8000";
-
-    const COLORS = [
-      "#b85c38","#e8734a","#c4a882","#8b6f47","#d4956a",
-      "#a0522d","#cd853f","#deb887","#966b3f","#bf8040",
-      "#cc7040","#b8860b","#d2a679","#c08050","#a67b5b",
-    ];
-
-    // ── Field definitions ──────────────────────────────────────
-    const FIELD_OPTIONS = {
-      sector: [
-        "MUEBLERO","TURÍSTICO","TIENDA DE ACCESORIOS DE VESTIR",
-        "TIENDA DEPARTAMENTAL","ELECTRÓNICO","AUTOMOTRIZ",
-        "TELECOMUNICACIONES","INMOBILIARIO","FINANCIERO","OTRO",
-      ],
-      tipo_reclamacion: [
-        "Garantías","Cambios, devoluciones o bonificaciones",
-        "Contratos","Incumplimiento","Cobros","Otros",
-      ],
-      procedimiento: [
-        "Conciliación personal","Conciliación telefónica",
-        "Conciliación por medios electrónicos","Arbitraje",
-      ],
-      bien_o_serv: ["Bien","Servicio"],
-      medio_ingreso: ["Escrito","Personal","Electrónico","Telefónico"],
-      tipo_prod: ["Producto nuevo","Producto usado","Servicio normal"],
-      modalidad_compra: [
-        "En establecimiento físico","Por internet",
-        "Por teléfono","A domicilio","Fuera de establecimiento",
-      ],
-      modalidad_pago: ["Contado","Crédito","Apartado","No aplica"],
-      prob_especial: [
-        "No problema especial","Adulto mayor",
-        "Persona con discapacidad","Menor de edad",
-      ],
-    };
-
-    const NUMERIC_FIELDS = [
-      "costo_bien_servicio","monto_reclamado","monto_recuperado","dias_resolucion"
-    ];
-
-    const FIELD_LABELS = {
-      sector: "Sector",
-      tipo_reclamacion: "Tipo de reclamación",
-      procedimiento: "Procedimiento",
-      bien_o_serv: "Bien o servicio",
-      medio_ingreso: "Medio de ingreso",
-      tipo_prod: "Tipo de producto",
-      modalidad_compra: "Modalidad de compra",
-      modalidad_pago: "Modalidad de pago",
-      prob_especial: "Problema especial",
-      costo_bien_servicio: "Costo del bien/servicio ($)",
-      monto_reclamado: "Monto reclamado ($)",
-      monto_recuperado: "Monto recuperado ($)",
-      dias_resolucion: "Días de resolución",
-    };
-
-    const DEFAULT_VALUES = {
-      sector: "MUEBLERO",
-      tipo_reclamacion: "Garantías",
-      procedimiento: "Conciliación personal",
-      bien_o_serv: "Bien",
-      medio_ingreso: "Escrito",
-      tipo_prod: "Producto nuevo",
-      modalidad_compra: "En establecimiento físico",
-      modalidad_pago: "Contado",
-      prob_especial: "No problema especial",
-      costo_bien_servicio: 0,
-      monto_reclamado: 0,
-      monto_recuperado: 0,
-      dias_resolucion: 30,
-    };
-
-    // ── API functions ──────────────────────────────────────────
-    async function predictClaim(data) {
-      const res = await fetch(`${API_BASE}/api/predict`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-      });
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.detail || "Error en la predicción");
-      }
-      return res.json();
-    }
-
-    async function getMetrics() {
-      const res = await fetch(`${API_BASE}/api/metrics`);
-      return res.json();
-    }
-
-    async function getStats() {
-      const res = await fetch(`${API_BASE}/api/stats`);
-      return res.json();
-    }
-
-    // ── Build form ─────────────────────────────────────────────
-    function buildForm() {
-      const container = document.getElementById("form-fields");
-      let html = "";
-
-      // Select fields
-      for (const [key, options] of Object.entries(FIELD_OPTIONS)) {
-        html += `<div>
-          <label class="label">${FIELD_LABELS[key]}</label>
-          <select class="input-field" name="${key}">
-            ${options.map(opt => `<option value="${opt}" ${opt === DEFAULT_VALUES[key] ? "selected" : ""}>${opt}</option>`).join("")}
-          </select>
-        </div>`;
-      }
-
-      // Numeric fields
-      for (const key of NUMERIC_FIELDS) {
-        html += `<div>
-          <label class="label">${FIELD_LABELS[key]}</label>
-          <input type="number" step="any" min="0" class="input-field" name="${key}" value="${DEFAULT_VALUES[key]}" />
-        </div>`;
-      }
-
-      container.innerHTML = html;
-    }
-
-    // ── Render stats cards ─────────────────────────────────────
-    function renderStats(stats, metrics) {
-      document.getElementById("stat-total").textContent =
-        stats ? stats.total_registros.toLocaleString() : "...";
-      document.getElementById("stat-categorias").textContent =
-        stats ? stats.total_categorias.toString() : "...";
-
-      if (metrics) {
-        const report = metrics.classification_report || {};
-        const f1 = report["weighted avg"]?.["f1-score"] ?? metrics.cv_f1_mean;
-        document.getElementById("stat-f1").textContent = f1 != null ? f1.toFixed(3) : "...";
-        const acc = report.accuracy ?? 0;
-        document.getElementById("stat-accuracy").textContent = (acc * 100).toFixed(1) + "%";
-      }
-    }
-
-    // ── Render prediction result ───────────────────────────────
-    function getConfidenceColors(c) {
-      if (c >= 0.7) return { bg: "var(--green-50)", border: "var(--green-200)", bar: "var(--green-500)", text: "var(--green-700)" };
-      if (c >= 0.4) return { bg: "var(--amber-50)", border: "var(--amber-200)", bar: "var(--amber-500)", text: "var(--amber-600)" };
-      return { bg: "var(--red-50)", border: "var(--red-200)", bar: "var(--red-500)", text: "var(--red-600)" };
-    }
-
-    function renderResult(result) {
-      document.getElementById("result-placeholder").classList.add("hidden");
-      const el = document.getElementById("result-content");
-      el.classList.remove("hidden");
-
-      const colors = getConfidenceColors(result.confianza);
-      const probs = Object.entries(result.probabilidades);
-      const probsId = "probs-" + Date.now();
-
-      el.innerHTML = `
-        <h2 class="section-title" style="margin-bottom:1.25rem">Resultado</h2>
-        <div class="result-box" style="background:${colors.bg}; border-color:${colors.border};">
-          <span class="label">Categoría predicha</span>
-          <p class="result-prediction">${result.prediccion}</p>
+        <div class="result-body">
           <div class="confidence-row">
-            <div class="confidence-bar-bg">
-              <div class="confidence-bar" style="width:${result.confianza * 100}%;background:${colors.bar}"></div>
-            </div>
-            <span class="confidence-pct" style="color:${colors.text}">${(result.confianza * 100).toFixed(1)}%</span>
+            <span class="confidence-label">Confianza del modelo</span>
+            <span class="confidence-value">${pct}%</span>
+          </div>
+          <div class="bar-track">
+            <div class="bar-fill" id="bar" style="width: 0%"></div>
+          </div>
+          <div class="top-list">
+            <div class="top-list-title">Top 5 categorías</div>
+            ${itemsHTML}
           </div>
         </div>
-        <button class="expand-btn" id="expand-probs">
-          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-          Todas las probabilidades (${probs.length})
-        </button>
-        <div id="${probsId}" class="hidden">
-          ${probs.map(([cat, prob]) => `
-            <div class="prob-row">
-              <span class="prob-name" title="${cat}">${cat}</span>
-              <div class="prob-bar-bg"><div class="prob-bar" style="width:${prob * 100}%"></div></div>
-              <span class="prob-pct">${(prob * 100).toFixed(1)}%</span>
-            </div>
-          `).join("")}
-        </div>
-      `;
+      </div>`;
 
-      // animate
-      el.style.animation = "none";
-      void el.offsetWidth;
-      el.classList.add("animate-scale-in");
-
-      // expand/collapse
-      const btn = document.getElementById("expand-probs");
-      btn.addEventListener("click", () => {
-        const probsEl = document.getElementById(probsId);
-        probsEl.classList.toggle("hidden");
-        btn.classList.toggle("expanded");
+    // animate bar
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        document.getElementById("bar").style.width = pct + "%";
       });
-    }
-
-    // ── Render distribution chart ──────────────────────────────
-    let distChartInstance = null;
-
-    function renderDistChart(stats) {
-      if (!stats || !stats.distribucion) return;
-
-      const entries = Object.entries(stats.distribucion)
-        .sort(([, a], [, b]) => b - a)
-        .slice(0, 12);
-
-      const labels = entries.map(([name]) => name.length > 25 ? name.slice(0, 22) + "..." : name);
-      const data = entries.map(([, v]) => v);
-
-      if (distChartInstance) distChartInstance.destroy();
-
-      const ctx = document.getElementById("dist-chart").getContext("2d");
-      distChartInstance = new Chart(ctx, {
-        type: "bar",
-        data: {
-          labels,
-          datasets: [{
-            data,
-            backgroundColor: data.map((_, i) => COLORS[i % COLORS.length]),
-            borderRadius: 6,
-            maxBarThickness: 28,
-          }],
-        },
-        options: {
-          indexAxis: "y",
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: { display: false },
-            tooltip: {
-              callbacks: {
-                title: (items) => entries[items[0].dataIndex][0],
-                label: (item) => item.raw.toLocaleString() + " reclamos",
-              },
-              backgroundColor: "#fffdf8",
-              titleColor: "#2c2418",
-              bodyColor: "#4a4a4a",
-              borderColor: "#e8e0d0",
-              borderWidth: 1,
-              titleFont: { family: "'Source Sans 3', sans-serif", size: 13, weight: "bold" },
-              bodyFont: { family: "'Source Sans 3', sans-serif", size: 13 },
-              cornerRadius: 12,
-              padding: 10,
-            },
-          },
-          scales: {
-            x: {
-              grid: { color: "rgba(232,224,208,0.5)" },
-              ticks: { font: { family: "'Source Sans 3', sans-serif", size: 11 }, color: "#4a4a4a" },
-            },
-            y: {
-              grid: { display: false },
-              ticks: { font: { family: "'Source Sans 3', sans-serif", size: 11 }, color: "#4a4a4a" },
-            },
-          },
-        },
-      });
-    }
-
-    // ── Render feature importance ───────────────────────────────
-    function renderFeatureImportance(metrics) {
-      if (!metrics || !metrics.feature_importance) return;
-
-      const section = document.getElementById("fi-section");
-      section.classList.remove("hidden");
-
-      const fiData = Object.entries(metrics.feature_importance)
-        .map(([name, value]) => ({ name, value: Math.round(value * 1000) / 10 }));
-
-      section.innerHTML = `
-        <h3 class="fi-section-title">Importancia de features</h3>
-        ${fiData.map((feat, i) => `
-          <div class="fi-row">
-            <span class="fi-name" title="${feat.name}">${feat.name}</span>
-            <div class="fi-bar-bg">
-              <div class="fi-bar" style="width:${feat.value}%;background:${COLORS[i % COLORS.length]};animation-delay:${i * 50}ms"></div>
-            </div>
-            <span class="fi-pct">${feat.value}%</span>
-          </div>
-        `).join("")}
-      `;
-    }
-
-    // ── Render metrics table ───────────────────────────────────
-    function renderMetrics(metrics) {
-      if (!metrics) return;
-
-      const report = metrics.classification_report || {};
-      const categories = metrics.categories || [];
-
-      // Tags
-      const tagsEl = document.getElementById("metrics-tags");
-      const f1Weighted = report["weighted avg"]?.["f1-score"];
-      tagsEl.innerHTML = `
-        <div class="tag tag-rust">F1: ${f1Weighted != null ? f1Weighted.toFixed(3) : "N/A"}</div>
-        <div class="tag tag-green" style="background:var(--green-50);color:var(--green-700);border:1px solid var(--green-200)">
-          CV: ${metrics.cv_f1_mean.toFixed(3)} ± ${metrics.cv_f1_std.toFixed(3)}
-        </div>
-      `;
-
-      // Table
-      const classMetrics = categories
-        .filter(cat => report[cat])
-        .map(cat => ({
-          name: cat,
-          precision: report[cat].precision,
-          recall: report[cat].recall,
-          f1: report[cat]["f1-score"],
-          support: report[cat].support,
-        }))
-        .sort((a, b) => b.f1 - a.f1);
-
-      const wrap = document.getElementById("metrics-table-wrap");
-      wrap.innerHTML = `
-        <table class="metrics-table">
-          <thead>
-            <tr>
-              <th>Categoría</th>
-              <th>Precision</th>
-              <th>Recall</th>
-              <th>F1-Score</th>
-              <th>Soporte</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${classMetrics.map(row => {
-              const f1Color = row.f1 >= 0.7 ? "var(--green-700)" : row.f1 >= 0.4 ? "var(--amber-600)" : "var(--red-600)";
-              return `<tr>
-                <td title="${row.name}">${row.name}</td>
-                <td>${row.precision.toFixed(3)}</td>
-                <td>${row.recall.toFixed(3)}</td>
-                <td style="font-weight:500;color:${f1Color}">${row.f1.toFixed(3)}</td>
-                <td style="color:rgba(74,74,74,0.6)">${row.support}</td>
-              </tr>`;
-            }).join("")}
-          </tbody>
-        </table>
-      `;
-    }
-
-    // ── Form submission ────────────────────────────────────────
-    function setupForm() {
-      const form = document.getElementById("prediction-form");
-      const btn = document.getElementById("submit-btn");
-
-      form.addEventListener("submit", async (e) => {
-        e.preventDefault();
-        btn.disabled = true;
-        btn.innerHTML = '<span class="spinner"></span> Clasificando...';
-
-        const formData = new FormData(form);
-        const data = {};
-        for (const [key, val] of formData.entries()) {
-          if (NUMERIC_FIELDS.includes(key)) {
-            data[key] = parseFloat(val) || 0;
-          } else {
-            data[key] = val;
-          }
-        }
-
-        try {
-          const result = await predictClaim(data);
-          renderResult(result);
-        } catch (err) {
-          alert(err.message || "Error al clasificar");
-        } finally {
-          btn.disabled = false;
-          btn.innerHTML = `<svg style="width:16px;height:16px" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg> Clasificar reclamo`;
-        }
-      });
-    }
-
-    // ── Init ───────────────────────────────────────────────────
-    document.addEventListener("DOMContentLoaded", async () => {
-      buildForm();
-      setupForm();
-
-      try {
-        const [metrics, stats] = await Promise.all([
-          getMetrics().catch(() => null),
-          getStats().catch(() => null),
-        ]);
-
-        renderStats(stats, metrics);
-        renderDistChart(stats);
-        renderFeatureImportance(metrics);
-        renderMetrics(metrics);
-      } catch (err) {
-        console.error("Error cargando datos iniciales:", err);
-      }
     });
-  </script>
+  }
+
+  function showError(msg) {
+    document.getElementById("result").innerHTML = `
+      <div class="error-card">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
+        ${msg}
+      </div>`;
+  }
+
+  // Enter to submit (Shift+Enter = newline)
+  document.getElementById("descripcion").addEventListener("keydown", function (e) {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      clasificar();
+    }
+  });
+</script>
 </body>
 </html>
