@@ -6,4 +6,4 @@ MODEL_PATH = os.path.join(BASE_DIR, "models", "model.pkl")
 METRICS_PATH = os.path.join(BASE_DIR, "models", "metrics.json")
 DATA_PATH = os.path.join(BASE_DIR, "data", "quejas_limpias.csv")
 
-TARGET = "MOTIVO_RECLAMACION"
+TARGET = "CATEGORIA"
